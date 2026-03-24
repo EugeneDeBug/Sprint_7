@@ -1,15 +1,10 @@
 import requests
 from faker import Faker
-from config import BASE_URL
+from constants import BASE_URL, NON_EXISTENT_COURIER_ID, NON_EXISTENT_ORDER_ID, NON_EXISTENT_TRACK
 
 fake = Faker(locale='ru_RU')
 
-# несуществующие ID
-NON_EXISTENT_COURIER_ID = 999999
-NON_EXISTENT_ORDER_ID = 999999
-NON_EXISTENT_TRACK = 999999999
-
-# генераторы данных для курьера
+#  генераторы данных для курьера
 def get_courier_data_valid():
     return {
         "login": fake.user_name() + str(fake.random_int(min=100, max=999)),
@@ -36,7 +31,7 @@ def get_login_data_no_login():
     return {"password": fake.password(length=10)}
 
 def get_login_data_no_password():
-    return {"login": fake.user_name(), "password":""}
+    return {"login": fake.user_name(), "password": ""}
 
 def get_login_data_wrong_password(login):
     return {"login": login, "password": "wrongpassword"}
@@ -44,7 +39,6 @@ def get_login_data_wrong_password(login):
 def get_login_data_wrong_login():
     return {"login": "nonexistent_user", "password": fake.password(length=10)}
 
-# генераторы данных для заказа
 def get_order_data_base():
     return {
         "firstName": fake.first_name(),
@@ -83,7 +77,7 @@ def get_order_data_missing_firstname():
     data.pop("firstName", None)
     return data
 
-# отправка запросов 
+#  отправка запросов
 def create_courier(payload):
     return requests.post(f"{BASE_URL}/courier", json=payload)
 
@@ -107,3 +101,6 @@ def cancel_order(track):
 
 def accept_order(order_id, courier_id):
     return requests.put(f"{BASE_URL}/orders/accept/{order_id}", params={"courierId": courier_id})
+
+def finish_order(order_id):
+    return requests.put(f"{BASE_URL}/orders/finish/{order_id}")

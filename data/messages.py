@@ -1,0 +1,10 @@
+# cообщения API
+COURIER_NOT_FOUND = "Курьера с таким id нет."
+COURIER_NOT_EXISTS = "Курьера с таким id не существует"
+ORDER_NOT_EXISTS = "Заказа с таким id не существует"
+ORDER_NOT_FOUND = "Заказ не найден"
+LOGIN_ALREADY_USED = "Этот логин уже используется. Попробуйте другой."
+INSUFFICIENT_DATA = "Недостаточно данных для создания учетной записи"
+INSUFFICIENT_LOGIN_DATA = "Недостаточно данных для входа"
+ACCOUNT_NOT_FOUND = "Учетная запись не найдена"
+INSUFFICIENT_SEARCH_DATA = "Недостаточно данных для поиска"

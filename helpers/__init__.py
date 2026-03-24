@@ -19,6 +19,7 @@ from .api_helpers import (
     get_order_by_track,
     cancel_order,
     accept_order,
+    finish_order,
     get_order_data_base,
     get_order_data_black,
     get_order_data_grey,

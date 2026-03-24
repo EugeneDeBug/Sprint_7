@@ -7,121 +7,132 @@ from helpers import (
     get_login_data_wrong_password, get_login_data_wrong_login,
     NON_EXISTENT_COURIER_ID
 )
+from data.messages import (
+    LOGIN_ALREADY_USED, INSUFFICIENT_DATA, INSUFFICIENT_LOGIN_DATA,
+    ACCOUNT_NOT_FOUND, COURIER_NOT_FOUND
+)
 
-@allure.feature("Курьер")
-class TestCreateCourier:    
+@allure.feature("Создание курьера")
+class TestCreateCourier:
 
     @allure.title("Создание курьера с валидными данными")
-    def test_create_courier_success(self):    
-        payload = get_courier_data_valid()
-        response = create_courier(payload)
+    def test_create_courier_success(self, new_courier):
+        payload, response = new_courier
         assert response.status_code == 201
         assert response.json() == {"ok": True}
-    
-        login_resp = login_courier({"login": payload["login"], "password": payload["password"]})
-        assert login_resp.status_code == 200
-        delete_courier(login_resp.json()["id"])
 
     @allure.title("Создание курьера с повторяющимся логином")
-    def test_create_courier_duplicate_login(self):        
-        first_payload = get_courier_data_valid()
-        create_courier(first_payload)
+    def test_create_courier_duplicate_login(self, new_courier):
+        payload, _ = new_courier
         duplicate_payload = {
-        "login": first_payload["login"],
-        "password": "another",
-        "firstName": "Another"
+            "login": payload["login"],
+            "password": "another",
+            "firstName": "Another"
         }
-        response = create_courier(duplicate_payload)
+        with allure.step("Попытаться создать второго курьера с тем же логином"):
+            response = create_courier(duplicate_payload)
         assert response.status_code == 409
-        assert response.json()["message"] == "Этот логин уже используется. Попробуйте другой."        
-        login_resp = login_courier({"login": first_payload["login"], "password": first_payload["password"]})
-        assert login_resp.status_code == 200
-        delete_courier(login_resp.json()["id"])
+        assert response.json()["message"] == LOGIN_ALREADY_USED
 
     @allure.title("Создание курьера без поля login")
-    def test_create_courier_missing_login(self):        
+    def test_create_courier_missing_login(self):
         payload = get_courier_data_no_login()
-        response = create_courier(payload)
+        with allure.step("Отправить запрос без поля login"):
+            response = create_courier(payload)
         assert response.status_code == 400
-        assert response.json()["message"] == "Недостаточно данных для создания учетной записи"
+        assert response.json()["message"] == INSUFFICIENT_DATA
 
     @allure.title("Создание курьера без поля password")
-    def test_create_courier_missing_password(self):        
+    def test_create_courier_missing_password(self):
         payload = get_courier_data_no_password()
-        response = create_courier(payload)
+        with allure.step("Отправить запрос без поля password"):
+            response = create_courier(payload)
         assert response.status_code == 400
-        assert response.json()["message"] == "Недостаточно данных для создания учетной записи"
+        assert response.json()["message"] == INSUFFICIENT_DATA
 
 
-@allure.feature("Курьер")
-class TestLoginCourier:    
+@allure.feature("Логин курьера")
+class TestLoginCourier:
 
     @allure.title("Успешный логин курьера")
-    def test_login_success(self, new_courier):        
-        login = new_courier["login"]
-        password = new_courier["password"]
-        payload = get_login_data_valid(login, password)
-        response = login_courier(payload)
+    def test_login_success(self, new_courier):
+        payload, _ = new_courier
+        login = payload["login"]
+        password = payload["password"]
+        payload_login = get_login_data_valid(login, password)
+        with allure.step("Выполнить логин"):
+            response = login_courier(payload_login)
         assert response.status_code == 200
         assert "id" in response.json()
 
     @allure.title("Логин с неверным паролем")
-    def test_login_wrong_password(self, new_courier):        
-        login = new_courier["login"]
-        payload = get_login_data_wrong_password(login)
-        response = login_courier(payload)
+    def test_login_wrong_password(self, new_courier):
+        payload, _ = new_courier
+        login = payload["login"]
+        payload_login = get_login_data_wrong_password(login)
+        with allure.step("Выполнить логин с неверным паролем"):
+            response = login_courier(payload_login)
         assert response.status_code == 404
-        assert response.json()["message"] == "Учетная запись не найдена"
+        assert response.json()["message"] == ACCOUNT_NOT_FOUND
 
     @allure.title("Логин с несуществующим логином")
-    def test_login_wrong_login(self):        
+    def test_login_wrong_login(self):
         payload = get_login_data_wrong_login()
-        response = login_courier(payload)
+        with allure.step("Выполнить логин с несуществующим логином"):
+            response = login_courier(payload)
         assert response.status_code == 404
-        assert response.json()["message"] == "Учетная запись не найдена"
+        assert response.json()["message"] == ACCOUNT_NOT_FOUND
 
     @allure.title("Логин без поля login")
-    def test_login_missing_login(self):        
+    def test_login_missing_login(self):
         payload = get_login_data_no_login()
-        response = login_courier(payload)
+        with allure.step("Выполнить логин без поля login"):
+            response = login_courier(payload)
         assert response.status_code == 400
-        assert response.json()["message"] == "Недостаточно данных для входа"
+        assert response.json()["message"] == INSUFFICIENT_LOGIN_DATA
 
     @allure.title("Логин без поля password")
-    def test_login_missing_password(self):        
+    def test_login_missing_password(self):
         payload = get_login_data_no_password()
-        response = login_courier(payload)        
+        with allure.step("Выполнить логин без поля password"):
+            response = login_courier(payload)
         assert response.status_code == 400
-        assert response.json()["message"] == "Недостаточно данных для входа"
+        assert response.json()["message"] == INSUFFICIENT_LOGIN_DATA
 
 
-@allure.feature("Курьер")
-class TestDeleteCourier:    
+@allure.feature("Удаление курьера")
+class TestDeleteCourier:
 
-    @allure.title("Успешное удаление курьера")
-    def test_delete_courier_success(self):        
-        payload = get_courier_data_valid()
-        response = create_courier(payload)
-        assert response.status_code == 201
-        
+    @allure.title("Успешное удаление курьера (код ответа)")
+    def test_delete_courier_returns_ok(self, new_courier):
+        payload, _ = new_courier
         login_resp = login_courier({"login": payload["login"], "password": payload["password"]})
-        assert login_resp.status_code == 200
         courier_id = login_resp.json()["id"]
-        
-        response = delete_courier(courier_id)
+        with allure.step("Удалить курьера"):
+            response = delete_courier(courier_id)
         assert response.status_code == 200
         assert response.json() == {"ok": True}
-        
-        second_login = login_courier({"login": payload["login"], "password": payload["password"]})
+
+    @allure.title("После удаления курьер не может авторизоваться")
+    def test_deleted_courier_cannot_login(self, new_courier):
+        payload, _ = new_courier
+        login_resp = login_courier({"login": payload["login"], "password": payload["password"]})
+        courier_id = login_resp.json()["id"]
+        with allure.step("Удалить курьера"):
+            delete_courier(courier_id)
+        with allure.step("Попытаться залогиниться после удаления"):
+            second_login = login_courier({"login": payload["login"], "password": payload["password"]})
         assert second_login.status_code == 404
 
     @allure.title("Удаление несуществующего курьера")
     def test_delete_nonexistent_courier(self):
-        response = delete_courier(NON_EXISTENT_COURIER_ID)
+        with allure.step("Удалить несуществующего курьера"):
+            response = delete_courier(NON_EXISTENT_COURIER_ID)
         assert response.status_code == 404
-        assert response.json()["message"] == "Курьера с таким id нет."
+        assert response.json()["message"] == COURIER_NOT_FOUND
 
     @allure.title("Удаление курьера без id")
     def test_delete_courier_without_id(self):
-        response = delete_courier("")
+        with allure.step("Удалить курьера без id (пустой id в URL)"):
+            response = delete_courier("")
         assert response.status_code == 404

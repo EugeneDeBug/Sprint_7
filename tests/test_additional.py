@@ -1,9 +1,10 @@
 import allure
 import requests
+from config import BASE_URL
 from helpers import (
     get_order_by_track, cancel_order, accept_order, finish_order,
     create_order, get_order_data_base, NON_EXISTENT_COURIER_ID,
-    NON_EXISTENT_ORDER_ID, NON_EXISTENT_TRACK, BASE_URL
+    NON_EXISTENT_ORDER_ID, NON_EXISTENT_TRACK
 )
 from data.messages import (
     COURIER_NOT_EXISTS, ORDER_NOT_EXISTS, ORDER_NOT_FOUND,

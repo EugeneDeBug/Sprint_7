@@ -1,6 +1,7 @@
 import requests
 from faker import Faker
-from constants import BASE_URL, NON_EXISTENT_COURIER_ID, NON_EXISTENT_ORDER_ID, NON_EXISTENT_TRACK
+from config import BASE_URL
+from constants import  NON_EXISTENT_COURIER_ID, NON_EXISTENT_ORDER_ID, NON_EXISTENT_TRACK
 
 fake = Faker(locale='ru_RU')
 
